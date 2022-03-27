@@ -73,9 +73,9 @@ function update() {
   for (var i = 0; i < Pos.length; i++) {
     for (var j = 0; j < Pos[i].length; j++) {
       if (Pos[i][j] === 1) {
-        document.getElementById(`[${i}][${j}]`).style.backgroundColor = "White";
-      } else {
         document.getElementById(`[${i}][${j}]`).style.backgroundColor = "Black";
+      } else {
+        document.getElementById(`[${i}][${j}]`).style.backgroundColor = "White";
       }
     }
   }
