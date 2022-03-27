@@ -1,0 +1,30 @@
+.Black {
+  height: 15px;
+  width: 15px;
+  background-color: black;
+}
+
+#gameArea {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+#buttons {
+  display: flex;
+  flex-direction: column;
+}
+button {
+  margin: 5px;
+}
