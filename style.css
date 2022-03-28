@@ -1,7 +1,7 @@
 .Black {
   height: 15px;
   width: 15px;
-  box-shadow: inset 0 0 1.5px black;
+  box-shadow: inset 0 0 2px black;
 }
 
 #gameArea {
