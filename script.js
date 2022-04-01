@@ -1,194 +1,247 @@
-let Pos = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
 
-function start(size) {
-  var ext = size - Pos.length;
-  for (var i = 0; i < Pos.length; i++) {
-    for (var j = 0; j < ext; j++) {
-      Pos[i].push(0);
-    }
-  }
-  for (var i = 0; i < ext; i++) {
-    Pos.push([]);
-    for (var j = 0; j < size; j++) {
-      Pos[i + 10].push(0);
-    }
-    var l = 1;
-  }
-  for (var i = 0; i < Pos.length; i++) {
-    for (var j = 0; j < Pos[i].length; j++) {
-      var div = document.createElement("div");
-      div.classList = "Black";
-      div.id = `[${i}][${j}]`;
+var mousePos = {
+  x: 0,
+  y: 0,
+};
 
-      document.getElementById("gameArea").appendChild(div);
-      l += 1;
+console.log(mousePos);
+ctx.lineWidth = "2";
+
+class line {
+  constructor(x1, y1, x2, y2) {
+    this.a = { x: x1, y: y1 };
+    this.b = { x: x2, y: y2 };
+    objects.push(this);
+  }
+  show() {
+    ctx.strokeStyle = "white";
+    ctx.beginPath();
+    ctx.moveTo(this.a.x, this.a.y);
+    ctx.lineTo(this.b.x, this.b.y);
+    ctx.stroke();
+  }
+}
+class Circle {
+  constructor(x, y, r) {
+    this.pos = { x: x, y: y };
+    this.r = r;
+    this.color = "white"
+    objects.push(this);
+  }
+  show() {
+    ctx.strokeStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.pos.x, this.pos.y, this.r, 0, 2 * Math.PI);
+    // ctx.fillStyle = "white";
+    // ctx.fill();
+    ctx.stroke();
+  }
+}
+class rayCircle {
+  constructor(x, y, r) {
+    this.pos = { x: x, y: y };
+    this.r = r;
+    rayCircles.push(this);
+  }
+  show() {
+    if (this.r > 0) {
+      ctx.strokeStyle = "red";
+      ctx.beginPath();
+      ctx.arc(this.pos.x, this.pos.y, this.r, 0, 2 * Math.PI);
+      // ctx.fillStyle = "white";
+      // ctx.fill();
+      ctx.stroke();
     }
   }
 }
-
-start(50);
-
-var pixelSize = 15;
-document.addEventListener("mousedown", mousedown);
-document.addEventListener("mouseup", mouseup);
-var mousedownID = -1;
-
-function mousedown() {
-  mousedownID = 1;
-}
-
-function mouseup() {
-  mousedownID = 0;
-}
-
-document.getElementById("gameArea").addEventListener("mouseover", function (e) {
-  if (mousedownID === 1) {
-    click(e.srcElement.id);
+class rayLine {
+  constructor(x1, y1, x2, y2) {
+    this.a = { x: x1, y: y1 };
+    this.b = { x: x2, y: y2 };
+    rayLines.push(this);
   }
+  show() {
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(this.a.x, this.a.y);
+    ctx.lineTo(this.b.x, this.b.y);
+    ctx.stroke();
+  }
+}
+
+var objects = [];
+var rayCircles = [];
+var rayLines = [];
+var pointList = [];
+
+p1 = new Circle(200, 100, 10);
+
+p2 = new Circle(800, 400, 100);
+
+p3 = new Circle(800, 700, 50);
+
+p4 = new Circle(450, 500, 70);
+
+p5 = new Circle(600, 300, 10);
+
+p6 = new Circle(900, 500, 10);
+
+draw();
+
+class point {
+  constructor(a, b) {
+    this.pos = {
+      x: a,
+      y: b,
+    };
+    pointList.push(this);
+  }
+}
+
+function draw() {
+  ctx.beginPath();
+  ctx.rect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "black";
+  ctx.fill();
+  ctx.stroke();
+  for (var i = 0; i < objects.length; i++) {
+    objects[i].show();
+  }
+  for (var i = 0; i < rayCircles.length; i++) {
+    rayCircles[i].show();
+  }
+  for (var i = 0; i < rayLines.length; i++) {
+    rayLines[i].show();
+  }
+}
+
+canvas.addEventListener("mousemove", function (e) {
+  rayCircles = [];
+  mousePos.x = e.offsetX;
+  mousePos.y = e.offsetY;
+  lineDir(p1.pos, Dir(p1.pos, mousePos));
+  march(p1);
+  draw();
 });
-document.getElementById("gameArea").addEventListener("mousedown", function (e) {
-  click(e.srcElement.id);
-});
 
-document.getElementById("gameArea").style.height = `${
-  Pos[1].length * pixelSize
-}px`;
-document.getElementById("gameArea").style.width = `${
-  Pos[1].length * pixelSize
-}px`;
-update();
+function dist(a, b) {
+  x1 = a.x;
+  y1 = a.y;
+  x2 = b.x;
+  y2 = b.y;
+  return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+}
 
-function update() {
-  for (var i = 0; i < Pos.length; i++) {
-    for (var j = 0; j < Pos[i].length; j++) {
-      if (Pos[i][j] === 1) {
-        document.getElementById(`[${i}][${j}]`).style.backgroundColor = "#52D017";
-      } else if((Pos[i][j] === 2)) {
-        document.getElementById(`[${i}][${j}]`).style.backgroundColor = "#85BB65";
-      } else if((Pos[i][j] === 3)) {
-        document.getElementById(`[${i}][${j}]`).style.backgroundColor = "#B0BF1A";
-      } else if((Pos[i][j] === 4)) {
-        document.getElementById(`[${i}][${j}]`).style.backgroundColor = "#FFA500";
-      } else if((Pos[i][j] > 4)) {
-        document.getElementById(`[${i}][${j}]`).style.backgroundColor = "#C04000";
+function edgeDist(a, b) {
+  return dist(a.pos, b.pos) - b.r;
+}
+
+function rayMarch(origin) {
+  rayCircles = [];
+  rayLines = [];
+  minDist = 1000000000;
+  var l = 0;
+  for (i = 0; i < objects.length; i++) {
+    if (origin != objects[i]) {
+      if (edgeDist(origin, objects[i]) < minDist) {
+        minDist = edgeDist(origin, objects[i]);
+        var l = i;
       }
+    }
+  }
+
+  rayCir = new rayCircle(
+    (origin.pos.x + objects[l].pos.x) / 2,
+    (origin.pos.y + objects[l].pos.y) / 2,
+    edgeDist(origin, objects[l]) / 2
+  );
+  rayLin = new rayLine(
+    origin.pos.x,
+    origin.pos.y,
+    objects[l].pos.x,
+    objects[l].pos.y
+  );
+}
+
+function degrees_to_radians(degrees) {
+  var pi = Math.PI;
+  return degrees * (pi / 180);
+}
+
+function radians_to_degrees(rad) {
+  var pi = Math.PI;
+  return rad * (180 / pi);
+}
+
+function lineDir(origin, dir) {
+  rayLines = [];
+  x = Math.cos(dir) * 1000000;
+  y = Math.sin(dir) * 1000000;
+  ray = new rayLine(origin.x, origin.y, x + origin.x, origin.y + y);
+}
+
+function Dir(origin, other) {
+  x = other.x;
+  y = other.y;
+  x1 = origin.x;
+  y1 = origin.y;
+  if (y > origin.y) {
+    return Math.acos((x - origin.x) / dist(origin, other));
+  } else if (other.y < origin.y) {
+    return 2 * Math.PI - Math.acos((x - origin.x) / dist(origin, other));
+  }
+}
+
+function compareAngle(angle1, angle2) {
+  angle = Math.abs(angle1 - angle2);
+  if (angle > Math.PI) {
+    angle = 2 * Math.PI - angle;
+  }
+  return angle;
+}
+
+function march(origin) {
+  rayCircles = [];
+  
+  other = objects[getClosest(p1, p1)]
+  distance = edgeDist(origin, other);
+  ray = new rayCircle(origin.pos.x, origin.pos.y, distance);    
+  nextPoint = new point(
+  Math.cos(Dir(origin.pos, mousePos)) * distance + origin.pos.x,
+  Math.sin(Dir(origin.pos, mousePos)) * distance + origin.pos.y
+  );
       
-      else {
-        document.getElementById(`[${i}][${j}]`).style.backgroundColor = "White";
+    
+  
+  for(j = 0; j < 10; j++) {
+    other = objects[getClosest(p1, nextPoint)]
+    distance = edgeDist(nextPoint, other);
+    ray = new rayCircle(nextPoint.pos.x, nextPoint.pos.y, distance);
+    nextPoint.pos.x += Math.cos(Dir(origin.pos, mousePos)) * distance
+    nextPoint.pos.y += Math.sin(Dir(origin.pos, mousePos)) * distance
+
+    if(edgeDist(nextPoint, objects[getClosest(p1, nextPoint)]) < 3) {
+      objects[getClosest(p1, nextPoint)].color = "yellow"
+    }
+    else {
+      objects.forEach(element => {
+        element.color = "white"
+      });
+    }
+  }
+}
+
+function getClosest(origin, pos) {
+  minDist = 10000000
+  for (i = 0; i < objects.length; i++) {
+    if (origin != objects[i]) {
+      if (edgeDist(pos, objects[i]) < minDist) {
+        minDist = edgeDist(pos, objects[i]);
+        var l = i;
       }
     }
   }
-}
-
-function click(pos) {
-  eval(`Pos${pos} = 1`);
-  update();
-}
-
-function checkNeighbors(i, j) {
-  var count = 0;
-  try {
-    if (Pos[i][j - 1] > 0) {
-      count = count + 1;
-    }
-  } catch (err) {}
-  try {
-    if (Pos[i][j + 1] > 0) {
-      count = count + 1;
-    }
-  } catch (err) {}
-  try {
-    if (Pos[i - 1][j] > 0) {
-      count = count + 1;
-    }
-  } catch (err) {}
-  try {
-    if (Pos[i + 1][j] > 0) {
-      count = count + 1;
-    }
-  } catch (err) {}
-  try {
-    if (Pos[i - 1][j - 1]  > 0) {
-      count = count + 1;
-    }
-  } catch (err) {}
-  try {
-    if (Pos[i - 1][j + 1] > 0) {
-      count = count + 1;
-    }
-  } catch (err) {}
-
-  try {
-    if (Pos[i + 1][j - 1] > 0) {
-      count = count + 1;
-    }
-  } catch (err) {}
-  try {
-    if (Pos[i + 1][j + 1] > 0) {
-      count = count + 1;
-    }
-  } catch (err) {}
-  return count;
-}
-
-function newGen() {
-  var deleteListX = [];
-  var deleteListY = [];
-  var birthListX = [];
-  var birthListY = [];
-  var surviveListX = []
-  var surviveListY = []
-  for (var i = 0; i < Pos.length; i++) {
-    for (var j = 0; j < Pos[i].length; j++) {
-      if (Pos[i][j] === 0) {
-        if (checkNeighbors(i, j) === 3) {
-          birthListX.push(i);
-          birthListY.push(j);
-        }
-      } else if (checkNeighbors(i, j) < 2) {
-        deleteListX.push(i);
-        deleteListY.push(j);
-      } else if (checkNeighbors(i, j) > 3) {
-        deleteListX.push(i);
-        deleteListY.push(j);
-      }
-      else {
-        surviveListX.push(i)
-        surviveListY.push(j)
-      }
-    }
-  }
-  for (var i = 0; i < deleteListX.length; i++) {
-    var x = deleteListX[i];
-    var y = deleteListY[i];
-    Pos[x][y] = 0;
-  }
-  for (var i = 0; i < birthListX.length; i++) {
-    var x = birthListX[i];
-    var y = birthListY[i];
-    Pos[x][y] = 1;
-  }
-  for (var i = 0; i < surviveListX.length; i++) {
-    var x = surviveListX[i];
-    var y = surviveListY[i];
-    Pos[x][y] += 1;
-  }
-  update();
-}
-
-function play() {
-  setInterval(function () {
-    newGen();
-  }, 100);
+  return l
 }
