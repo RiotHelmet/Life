@@ -130,7 +130,7 @@ canvas.addEventListener("mousemove", function (e) {
   degrees = 0;
   while (degrees < 2 * Math.PI) {
     march(p1, degrees);
-    degrees += (2 * Math.PI) / 2000;
+    degrees += (2 * Math.PI) / 3000;
   }
   // march(p1, 0);
   hit(hitList);
@@ -186,7 +186,7 @@ function march(origin, dir) {
     Math.sin(dir) * stepSize + origin.pos.y
   );
 
-  for (j = 0; j < 20; j++) {
+  for (j = 0; j < 40; j++) {
     stepSize = edgeDist(nextPoint, objects[getClosest(p1, nextPoint)]);
     raySize += stepSize;
     // ray = new rayCircle(nextPoint.pos.x, nextPoint.pos.y, stepSize);
@@ -195,6 +195,11 @@ function march(origin, dir) {
 
     if (edgeDist(nextPoint, objects[getClosest(p1, nextPoint)]) < 1) {
       hitList.push(objects[getClosest(p1, nextPoint)]);
+      break;
+    } else if (nextPoint.pos.x < 0) {
+      break;
+    } else if (nextPoint.pos.y < 0) {
+      break;
     }
   }
   ray = new rayLine(
@@ -202,7 +207,7 @@ function march(origin, dir) {
     origin.pos.y,
     Math.cos(dir) * raySize + origin.pos.x,
     Math.sin(dir) * raySize + origin.pos.y,
-    "rgba(255, 255, 255, 0.1)"
+    "rgba(255, 255, 255, 0.05)"
   );
 }
 function getClosest(origin, pos) {
@@ -220,7 +225,7 @@ function getClosest(origin, pos) {
 
 function hit(hitList) {
   hitList.forEach((element) => {
-    element.color = "yellow";
+    element.color = "white";
   });
   objects.forEach((element) => {
     if (hitList.includes(element) === false) {
