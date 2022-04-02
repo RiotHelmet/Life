@@ -27,7 +27,7 @@ class Circle {
   constructor(x, y, r) {
     this.pos = { x: x, y: y };
     this.r = r;
-    this.color = "white"
+    this.color = "white";
     objects.push(this);
   }
   show() {
@@ -57,13 +57,14 @@ class rayCircle {
   }
 }
 class rayLine {
-  constructor(x1, y1, x2, y2) {
+  constructor(x1, y1, x2, y2, style) {
     this.a = { x: x1, y: y1 };
     this.b = { x: x2, y: y2 };
     rayLines.push(this);
+    this.strokeStyle = style;
   }
   show() {
-    ctx.strokeStyle = "red";
+    ctx.strokeStyle = this.strokeStyle;
     ctx.beginPath();
     ctx.moveTo(this.a.x, this.a.y);
     ctx.lineTo(this.b.x, this.b.y);
@@ -75,8 +76,9 @@ var objects = [];
 var rayCircles = [];
 var rayLines = [];
 var pointList = [];
+var hitList = [];
 
-p1 = new Circle(200, 100, 10);
+p1 = new Circle(200, 100, 5);
 
 p2 = new Circle(800, 400, 100);
 
@@ -119,10 +121,19 @@ function draw() {
 
 canvas.addEventListener("mousemove", function (e) {
   rayCircles = [];
+  hitList = [];
+  rayLines = [];
   mousePos.x = e.offsetX;
   mousePos.y = e.offsetY;
-  lineDir(p1.pos, Dir(p1.pos, mousePos));
-  march(p1);
+  p1.pos.x = mousePos.x;
+  p1.pos.y = mousePos.y;
+  degrees = 0;
+  while (degrees < 2 * Math.PI) {
+    march(p1, degrees);
+    degrees += (2 * Math.PI) / 2000;
+  }
+  // march(p1, 0);
+  hit(hitList);
   draw();
 });
 
@@ -136,33 +147,6 @@ function dist(a, b) {
 
 function edgeDist(a, b) {
   return dist(a.pos, b.pos) - b.r;
-}
-
-function rayMarch(origin) {
-  rayCircles = [];
-  rayLines = [];
-  minDist = 1000000000;
-  var l = 0;
-  for (i = 0; i < objects.length; i++) {
-    if (origin != objects[i]) {
-      if (edgeDist(origin, objects[i]) < minDist) {
-        minDist = edgeDist(origin, objects[i]);
-        var l = i;
-      }
-    }
-  }
-
-  rayCir = new rayCircle(
-    (origin.pos.x + objects[l].pos.x) / 2,
-    (origin.pos.y + objects[l].pos.y) / 2,
-    edgeDist(origin, objects[l]) / 2
-  );
-  rayLin = new rayLine(
-    origin.pos.x,
-    origin.pos.y,
-    objects[l].pos.x,
-    objects[l].pos.y
-  );
 }
 
 function degrees_to_radians(degrees) {
@@ -187,61 +171,60 @@ function Dir(origin, other) {
   y = other.y;
   x1 = origin.x;
   y1 = origin.y;
-  if (y > origin.y) {
+  if ((y) => origin.y) {
     return Math.acos((x - origin.x) / dist(origin, other));
-  } else if (other.y < origin.y) {
+  } else if (other.y <= origin.y) {
     return 2 * Math.PI - Math.acos((x - origin.x) / dist(origin, other));
   }
 }
 
-function compareAngle(angle1, angle2) {
-  angle = Math.abs(angle1 - angle2);
-  if (angle > Math.PI) {
-    angle = 2 * Math.PI - angle;
-  }
-  return angle;
-}
-
-function march(origin) {
-  rayCircles = [];
-  
-  other = objects[getClosest(p1, p1)]
-  distance = edgeDist(origin, other);
-  ray = new rayCircle(origin.pos.x, origin.pos.y, distance);    
+function march(origin, dir) {
+  stepSize = edgeDist(origin, objects[getClosest(origin, origin)]);
+  raySize = stepSize;
   nextPoint = new point(
-  Math.cos(Dir(origin.pos, mousePos)) * distance + origin.pos.x,
-  Math.sin(Dir(origin.pos, mousePos)) * distance + origin.pos.y
+    Math.cos(dir) * stepSize + origin.pos.x,
+    Math.sin(dir) * stepSize + origin.pos.y
   );
-      
-    
-  
-  for(j = 0; j < 10; j++) {
-    other = objects[getClosest(p1, nextPoint)]
-    distance = edgeDist(nextPoint, other);
-    ray = new rayCircle(nextPoint.pos.x, nextPoint.pos.y, distance);
-    nextPoint.pos.x += Math.cos(Dir(origin.pos, mousePos)) * distance
-    nextPoint.pos.y += Math.sin(Dir(origin.pos, mousePos)) * distance
 
-    if(edgeDist(nextPoint, objects[getClosest(p1, nextPoint)]) < 3) {
-      objects[getClosest(p1, nextPoint)].color = "yellow"
-    }
-    else {
-      objects.forEach(element => {
-        element.color = "white"
-      });
+  for (j = 0; j < 20; j++) {
+    stepSize = edgeDist(nextPoint, objects[getClosest(p1, nextPoint)]);
+    raySize += stepSize;
+    // ray = new rayCircle(nextPoint.pos.x, nextPoint.pos.y, stepSize);
+    nextPoint.pos.x += Math.cos(dir) * stepSize;
+    nextPoint.pos.y += Math.sin(dir) * stepSize;
+
+    if (edgeDist(nextPoint, objects[getClosest(p1, nextPoint)]) < 1) {
+      hitList.push(objects[getClosest(p1, nextPoint)]);
     }
   }
+  ray = new rayLine(
+    origin.pos.x,
+    origin.pos.y,
+    Math.cos(dir) * raySize + origin.pos.x,
+    Math.sin(dir) * raySize + origin.pos.y,
+    "rgba(255, 255, 255, 0.1)"
+  );
 }
-
 function getClosest(origin, pos) {
-  minDist = 10000000
+  minDist = Infinity;
   for (i = 0; i < objects.length; i++) {
     if (origin != objects[i]) {
       if (edgeDist(pos, objects[i]) < minDist) {
         minDist = edgeDist(pos, objects[i]);
-        var l = i;
+        var index = i;
       }
     }
   }
-  return l
+  return index;
+}
+
+function hit(hitList) {
+  hitList.forEach((element) => {
+    element.color = "yellow";
+  });
+  objects.forEach((element) => {
+    if (hitList.includes(element) === false) {
+      element.color = "white";
+    }
+  });
 }
