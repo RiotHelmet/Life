@@ -186,7 +186,7 @@ function march(origin, dir) {
     Math.sin(dir) * stepSize + origin.pos.y
   );
 
-  for (j = 0; j < 40; j++) {
+  for (j = 0; j < Infinity; j++) {
     stepSize = edgeDist(nextPoint, objects[getClosest(p1, nextPoint)]);
     raySize += stepSize;
     // ray = new rayCircle(nextPoint.pos.x, nextPoint.pos.y, stepSize);
@@ -199,6 +199,10 @@ function march(origin, dir) {
     } else if (nextPoint.pos.x < 0) {
       break;
     } else if (nextPoint.pos.y < 0) {
+      break;
+    } else if (nextPoint.pos.x > 1250) {
+      break;
+    } else if (nextPoint.pos.y > 750) {
       break;
     }
   }
